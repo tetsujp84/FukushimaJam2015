@@ -14,6 +14,11 @@ public class UnityChan2DController : MonoBehaviour
     private Rigidbody2D m_rigidbody2D;
     private bool m_isGround;
     private const float m_centerY = 1.5f;
+	[SerializeField]
+	private Animator doragonAnimator;
+	public float attackIntervalTime;
+	float oldAttackTime;
+	private int HP=3;
 
     private State m_state = State.Normal;
 
@@ -40,6 +45,8 @@ public class UnityChan2DController : MonoBehaviour
 
         // Animator
         m_animator.applyRootMotion = false;
+
+		oldAttackTime = Time.time;
     }
 
     void Awake()
@@ -56,9 +63,17 @@ public class UnityChan2DController : MonoBehaviour
             float x = Input.GetAxis("Horizontal");
             bool jump = Input.GetButtonDown("Jump");
             Move(x, jump);
+			Attack ();
         }
     }
 
+	void Attack(){
+		if (Input.GetButtonDown ("Attack")&&m_state==State.Normal&&Time.time-oldAttackTime>attackIntervalTime) {
+			m_animator.SetTrigger ("Attack");
+			doragonAnimator.SetTrigger ("Attack");
+			oldAttackTime=Time.time;
+		}
+	}
     void Move(float move, bool jump)
     {
         if (Mathf.Abs(move) > 0)
@@ -73,11 +88,15 @@ public class UnityChan2DController : MonoBehaviour
         m_animator.SetFloat("Vertical", m_rigidbody2D.velocity.y);
         m_animator.SetBool("isGround", m_isGround);
 
+		doragonAnimator.SetBool("Fly",!m_isGround);
         if (jump && m_isGround)
         {
             m_animator.SetTrigger("Jump");
             SendMessage("Jump", SendMessageOptions.DontRequireReceiver);
             m_rigidbody2D.AddForce(Vector2.up * jumpPower);
+			SoundManager.Instance.PlaySoundFromName ("Jump", SoundManager.AudioKind.SE);
+
+
         }
     }
 
@@ -91,15 +110,29 @@ public class UnityChan2DController : MonoBehaviour
         m_animator.SetBool("isGround", m_isGround);
     }
 
-    void OnTriggerStay2D(Collider2D other)
+    /*void OnTriggerStay2D(Collider2D other)
     {
         if (other.tag == "DamageObject" && m_state == State.Normal)
         {
             m_state = State.Damaged;
             StartCoroutine(INTERNAL_OnDamage());
         }
-    }
+    }*/
+	void OnCollisionStay2D(Collision2D other)
+    {
+		if (other.gameObject.tag == "DamageObject" && m_state == State.Normal)
+        {
+            m_state = State.Damaged;
+			SoundManager.Instance.PlaySoundFromName ("Damage", SoundManager.AudioKind.SE);
+            StartCoroutine(INTERNAL_OnDamage());
+        }
 
+		if (other.gameObject.tag == "Item") {
+			ScoreManager.Instance.lifeGetCount++;
+			SoundManager.Instance.PlaySoundFromName ("LifeSound", SoundManager.AudioKind.SE);
+			Destroy (other.gameObject);
+		}
+    }
     IEnumerator INTERNAL_OnDamage()
     {
         m_animator.Play(m_isGround ? "Damage" : "AirDamage");
@@ -117,6 +150,8 @@ public class UnityChan2DController : MonoBehaviour
         }
         m_animator.SetTrigger("Invincible Mode");
         m_state = State.Invincible;
+		gameObject.SetActive (false);
+		ScoreManager.Instance.SetLose ();
     }
 
     void OnFinishedInvincibleMode()

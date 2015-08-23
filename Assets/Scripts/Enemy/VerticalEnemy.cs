@@ -1,10 +1,20 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-//横にのみ移動する敵
+//たてにのみ移動する敵
 public class VerticalEnemy : Enemy {
-
+	public float speed;
+	public float oldTime;
+	public float intervalTime;
+	public void Awake(){
+		oldTime = Time.time;
+	}
 	public override void Move(){
-		rigidbody.velocity = new Vector2(speed, rigidbody.velocity.y);
+		if(Time.time - oldTime > intervalTime)	{
+
+			rigidbody.AddForce(Vector2.up * speed);
+			oldTime=Time.time;
 		}
+	}
+
 }

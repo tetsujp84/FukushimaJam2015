@@ -107,6 +107,9 @@ public class SoundManager : DontDestroySingleton<SoundManager>
         Set2DSound();
         SetVolume();
 
+	
+		PlaySoundFromName ("BGM", AudioKind.BGM);
+
     }
 
     void Update()

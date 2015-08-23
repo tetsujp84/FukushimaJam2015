@@ -11,6 +11,9 @@ public class GameManager : DontDestroySingleton<GameManager> {
 	// Update is called once per frame
 	void Update () {
 	
+		if (Input.GetKey (KeyCode.Escape)) {
+			Application.Quit ();
+		}
 	}
 
 	public void GoNextScene(string nextScene){

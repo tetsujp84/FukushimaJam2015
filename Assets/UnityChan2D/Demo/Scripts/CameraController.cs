@@ -51,6 +51,7 @@ public class CameraController : MonoBehaviour
 
         yield return new WaitForSeconds(3);
 
-        Application.LoadLevel(nextLevel);
+        //Application.LoadLevel("ClearScene");
+		//GameManager.Instance.GoNextScene("ClearScene");
     }
 }
